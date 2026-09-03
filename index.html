@@ -248,6 +248,7 @@
             </div>
 
             <div class="space-y-2">
+                
                 <button onclick="closeModal('ticket-modal')" class="w-full py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-colors">
                     關閉視窗
                 </button>
@@ -769,31 +770,17 @@
             window.openModal('ticket-modal');
         };
 
-         // User Cancel Booking (取消預約：優先清理本地再刪雲端)
-         window.cancelBooking = async function(id) {
-            if (!confirm('確定要取消此預約嗎？取消後名額將會自動釋出。')) return;
-            try {
-                // 先從本地快取移除該筆資料
-                window.bookings = window.bookings.filter(b => b.id !== id);
+        window.cancelBooking = async function(bookingId) {
+            const index = window.bookings.findIndex(b => b.id === bookingId);
+            if (index !== -1) {
+                window.bookings.splice(index, 1);
                 window.saveData();
-
-                // 若雲端可用，同時刪除雲端文件
-                if (isCloudAvailable && db && id) {
-                    await deleteDoc(doc(db, "bookings", id));
-                }
-
+                await window.deleteBookingFromCloud(bookingId);
                 window.renderSlots();
                 window.searchBookings();
-                if (!document.getElementById('admin-panel-modal').classList.contains('hidden')) {
-                    window.renderAdminList();
-                }
-                window.showToast('已成功取消預約！名額已釋出。', 'success');
-            } catch (err) {
-                console.error("取消預約失敗：", err);
-                alert('取消失敗：' + err.message);
+                window.showToast('已取消預約，名額已即時釋放！', 'success');
             }
         };
-
 
         // Staff Admin Password Verification
         window.openAdminAuthModal = function() {
@@ -875,43 +862,29 @@
             window.openModal('reset-confirm-modal');
         };
 
-         // Reset All Bookings (徹底清空雲端與本地快取，解決殘留幽靈資料)
-         window.handleResetAllBookings = async function(e) {
+        window.handleResetAllBookings = async function(e) {
             e.preventDefault();
             const pwd = document.getElementById('reset-pwd-input').value;
             if (pwd !== 'weng2') {
-                alert('密碼錯誤！無法執行清空操作');
+                window.showToast('重置失敗：密碼錯誤！', 'error');
                 return;
             }
 
-            try {
-                // 1. 強制先清空本地記憶體與 LocalStorage 快取
-                window.bookings = [];
-                localStorage.removeItem('tf_popup_bookings');
+            const currentBookings = [...window.bookings];
+            window.bookings = [];
+            window.saveData();
 
-                // 2. 刪除 Firestore 雲端資料庫中的所有文件
-                if (isCloudAvailable && db) {
-                    const querySnapshot = await getDocs(collection(db, "bookings"));
-                    const deletePromises = [];
-                    querySnapshot.forEach(docSnap => {
-                        deletePromises.push(deleteDoc(doc(db, "bookings", docSnap.id)));
-                    });
-                    await Promise.all(deletePromises);
+            for (const b of currentBookings) {
+                if (b.id) {
+                    await window.deleteBookingFromCloud(b.id);
                 }
-
-                // 3. 立即重繪 UI 畫面
-                window.renderSlots();
-                window.renderAdminList();
-                window.closeModal('reset-confirm-modal');
-                document.getElementById('reset-pwd-input').value = '';
-                window.showToast('已成功完全重置所有預約資料！', 'success');
-
-            } catch (err) {
-                console.error("重置失敗：", err);
-                alert('重置失敗：' + err.message);
             }
-        };
 
+            window.renderSlots();
+            window.renderAdminList();
+            window.closeModal('reset-confirm-modal');
+            window.showToast('已成功重置所有預約紀錄！', 'success');
+        };
 
         window.exportToCSV = function() {
             if (window.bookings.length === 0) {
