@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時代峰峻周邊快閃市集 - 線上預約系統</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- html2canvas for screenshot download support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        macaron: {
+                            pink: '#FAD2E1',
+                            pinkHover: '#F7B7CE',
+                            lightPink: '#FFF0F5',
+                            mint: '#E2F0CB',
+                            mintDark: '#A8D5BA',
+                            blue: '#D4F1F4',
+                            blueDark: '#8EB8E5',
+                            yellow: '#FFF1E6',
+                            yellowDark: '#FDE2E4',
+                            purple: '#E8DFF5',
+                            purpleDark: '#CDB4DB',
+                            gray: '#F0F2F5',
+                            disabled: '#E5E7EB',
+                            textDark: '#4A4E69',
+                            textSubtle: '#6C757D'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFF0F5 0%, #E8DFF5 50%, #D4F1F4 100%);
+            min-height: 100vh;
+            color: #4A4E69;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .slot-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slot-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #E8DFF5;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-sans py-6 px-4 md:px-8 flex flex-col min-h-screen">
+
+    <div class="max-w-4xl mx-auto w-full flex-grow">
+        <!-- Header Banner -->
+        <header class="glass-card rounded-3xl p-6 md:p-8 mb-6 shadow-xl text-center relative overflow-hidden">
+            <div class="absolute -top-12 -left-12 w-32 h-32 bg-macaron-pink opacity-40 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-macaron-blue opacity-40 rounded-full blur-2xl"></div>
+            
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-macaron-pink text-xs md:text-sm font-semibold text-pink-500 mb-3 shadow-sm">
+                    <i class="fa-solid fa-sparkles"></i> TF Family Pop-up Store
+                </div>
+                <h1 class="text-2xl md:text-4xl font-black text-macaron-textDark tracking-wide mb-2">
+                    時代峰峻周邊快閃市集
+                </h1>
+                <p class="text-xs md:text-base text-macaron-textSubtle font-medium">
+                    線上預約入場資格 ‧ 現場快速報到
+                </p>
+            </div>
+        </header>
+
+        <!-- Top Status Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="glass-card rounded-2xl p-4 shadow-sm md:col-span-2 flex items-center gap-4 border-l-4 border-pink-300">
+                <div class="w-10 h-10 rounded-2xl bg-macaron-pink/40 flex items-center justify-center text-pink-600 text-lg flex-shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div class="text-xs md:text-sm">
+                    <div class="font-bold text-macaron-textDark">預約須知</div>
+                    <div class="text-gray-500 mt-0.5">每時段限時 40 分鐘 ‧ 完成預約後請截圖儲存入場編號憑證</div>
+                </div>
+            </div>
+
+            <!-- Lookup Button -->
+            <button onclick="openLookupModal()" class="glass-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between group bg-white/90">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-macaron-purple/50 flex items-center justify-center text-purple-600 text-base">
+                        <i class="fa-solid fa-ticket-simple"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="font-bold text-sm text-macaron-textDark">查詢 / 取消預約</div>
+                        <div class="text-[11px] text-gray-400">輸入手機查詢記錄</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300 group-hover:translate-x-1 transition-transform text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Booking Main Container -->
+        <main class="glass-card rounded-3xl p-6 md:p-8 shadow-xl">
+            <!-- Date Tabs -->
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-macaron-textDark mb-3 flex items-center gap-2">
+                    <i class="fa-regular fa-calendar-days text-pink-400"></i> 請選擇預約日期
+                </label>
+                <div class="grid grid-cols-2 gap-3 p-1.5 bg-gray-100/80 rounded-2xl">
+                    <button id="date-btn-925" onclick="switchDate('9/25')" class="py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 shadow-sm bg-white text-pink-500">
+                        <i class="fa-solid fa-heart"></i> 9 月 25 日 (五)
+                    </button>
+                    <button id="date-btn-926" onclick="switchDate('9/26')" class="py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700">
+                        <i class="fa-solid fa-star"></i> 9 月 26 日 (六)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Time Slots Grid Section -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-sm font-bold text-macaron-textDark flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-purple-400"></i> 請選擇預約時段
+                    </label>
+                    <span class="text-xs text-gray-400">標註灰色代表該時段已額滿</span>
+                </div>
+
+                <div id="slots-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+                    <!-- Time slots dynamically generated via JS -->
+                </div>
+            </div>
+
+            <!-- Booking Form Container -->
+            <div id="booking-form-container" class="hidden border-t border-gray-200/60 pt-6">
+                <div class="bg-macaron-lightPink/70 rounded-2xl p-5 md:p-6 border border-pink-100 mb-4">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-pink-200/50">
+                        <div>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-pink-200 text-pink-700">已選時段</span>
+                            <div id="selected-slot-display" class="text-lg font-black text-macaron-textDark mt-1">
+                                --
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">剩餘名額</span>
+                            <div id="remaining-quota-display" class="text-lg font-bold text-pink-500">
+                                -- 人
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">預約人姓名 <span class="text-pink-500">*</span></label>
+                                <input type="text" id="user-name" required placeholder="請輸入真實姓名" 
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">手機號碼 <span class="text-pink-500">*</span></label>
+                                <input type="tel" id="user-phone" required pattern="[0-9]{9,11}" placeholder="例：0912345678" 
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">電子信箱 (選填)</label>
+                                <input type="email" id="user-email" placeholder="example@email.com" 
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">預約人數 <span class="text-pink-500">*</span></label>
+                                <select id="user-pax" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">備註 / 支持的偶像團體 (選填)</label>
+                            <input type="text" id="user-note" placeholder="例：TFBOYS / 時代少年團 / 登陸少年" 
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm bg-white">
+                        </div>
+
+                        <button type="submit" id="submit-booking-btn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-base shadow-md hover:shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> 確認並送出預約
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Ticket Modal (Clean text ID with screenshot download option) -->
+    <div id="ticket-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('ticket-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center text-xl mx-auto mb-2">
+                <i class="fa-solid fa-check"></i>
+            </div>
+
+            <h3 class="text-lg font-black text-macaron-textDark mb-0.5">預約成功！</h3>
+            <p class="text-xs text-gray-400 mb-3">請截圖保存下方憑證，現場核銷入場</p>
+
+            <!-- Digital Ticket Card -->
+            <div id="ticket-card-content" class="bg-macaron-yellow/80 rounded-2xl p-5 border-2 border-dashed border-amber-300 text-left relative mb-4">
+                <div class="text-xs font-bold text-amber-800 border-b border-amber-200 pb-2 mb-3 flex items-center justify-between">
+                    <span>時代峰峻周邊快閃市集</span>
+                    <span class="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">入場憑證</span>
+                </div>
+
+                <div class="text-center py-2 bg-white/80 rounded-xl mb-3 border border-amber-100">
+                    <div class="text-[11px] text-gray-400 mb-0.5">現場核銷編號</div>
+                    <div id="ticket-id" class="text-2xl font-black font-mono text-purple-600 tracking-wider">TF925-1100-001</div>
+                </div>
+
+                <div class="space-y-1.5 text-xs text-gray-700">
+                    <p><span class="text-gray-400">預約日期：</span><span id="ticket-date" class="font-bold">--</span></p>
+                    <p><span class="text-gray-400">入場時段：</span><span id="ticket-time" class="font-bold text-pink-600">--</span></p>
+                    <p><span class="text-gray-400">預約姓名：</span><span id="ticket-name" class="font-bold">--</span></p>
+                    <p><span class="text-gray-400">預約人數：</span><span id="ticket-pax" class="font-bold">--</span> 人</p>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="downloadTicketImage()" class="w-full py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> 下載 / 儲存憑證圖片
+                </button>
+                <button onclick="closeModal('ticket-modal')" class="w-full py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-colors">
+                    關閉視窗
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lookup / Cancel Modal -->
+    <div id="lookup-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('lookup-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-bold text-macaron-textDark mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass text-purple-400"></i> 查詢預約記錄
+            </h3>
+            <p class="text-xs text-gray-400 mb-4">請輸入預約時填寫的手機號碼或預約編號</p>
+
+            <div class="flex gap-2 mb-4">
+                <input type="tel" id="search-phone" placeholder="輸入手機號碼" onkeydown="if(event.key==='Enter') searchBookings()"
+                    class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <button onclick="searchBookings()" class="px-5 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-xs font-bold transition-colors">
+                    搜尋
+                </button>
+            </div>
+
+            <div id="search-results" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                <div class="text-center py-8 text-xs text-gray-400">輸入號碼後點擊搜尋</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Password Authentication Modal -->
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('admin-auth-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-base font-bold text-macaron-textDark mb-1">工作人員解鎖身分驗證</h3>
+            <p class="text-xs text-gray-400 mb-4">請輸入後台解鎖密碼</p>
+            
+            <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
+                <input type="password" id="admin-pwd-input" required placeholder="請輸入密碼" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <button type="submit" class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl text-xs transition-colors shadow">
+                    確認進入
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Staff Admin Panel Modal -->
+    <div id="admin-panel-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="closeModal('admin-panel-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center justify-between mb-3 border-b pb-3 pr-8">
+                <div>
+                    <h3 class="text-lg font-bold text-macaron-textDark flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield text-blue-500"></i> 工作人員核銷與統計後台
+                    </h3>
+                    <p class="text-xs text-gray-400">查驗預約憑證編號與標註現場核銷狀態</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openResetConfirmModal()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-trash-arrow-up"></i> 重置所有預約
+                    </button>
+                    <button onclick="exportToCSV()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-file-excel"></i> 匯出 CSV 報表
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <input type="text" id="admin-search-input" oninput="renderAdminList()" placeholder="搜尋編號、姓名或手機..." 
+                    class="px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-300">
+                
+                <select id="admin-filter-slot" onchange="renderAdminList()" class="px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <option value="ALL">全部時段名單</option>
+                    <optgroup label="9 月 25 日 (五)">
+                        <option value="9/25 11:00">9/25 11:00</option>
+                        <option value="9/25 11:40">9/25 11:40</option>
+                        <option value="9/25 12:00">9/25 12:00</option>
+                        <option value="9/25 12:40">9/25 12:40</option>
+                        <option value="9/25 13:00">9/25 13:00</option>
+                        <option value="9/25 13:40">9/25 13:40</option>
+                        <option value="9/25 14:00">9/25 14:00</option>
+                        <option value="9/25 14:40">9/25 14:40</option>
+                        <option value="9/25 15:00">9/25 15:00</option>
+                        <option value="9/25 15:40">9/25 15:40</option>
+                        <option value="9/25 16:00">9/25 16:00</option>
+                        <option value="9/25 16:40">9/25 16:40</option>
+                        <option value="9/25 17:00">9/25 17:00</option>
+                        <option value="9/25 17:40">9/25 17:40</option>
+                    </optgroup>
+                    <optgroup label="9 月 26 日 (六)">
+                        <option value="9/26 11:00">9/26 11:00</option>
+                        <option value="9/26 11:40">9/26 11:40</option>
+                        <option value="9/26 12:00">9/26 12:00</option>
+                        <option value="9/26 12:40">9/26 12:40</option>
+                        <option value="9/26 13:00">9/26 13:00</option>
+                        <option value="9/26 13:40">9/26 13:40</option>
+                        <option value="9/26 14:00">9/26 14:00</option>
+                        <option value="9/26 14:40">9/26 14:40</option>
+                        <option value="9/26 15:00">9/26 15:00</option>
+                        <option value="9/26 15:40">9/26 15:40</option>
+                        <option value="9/26 16:00">9/26 16:00</option>
+                        <option value="9/26 16:40">9/26 16:40</option>
+                        <option value="9/26 17:00">9/26 17:00</option>
+                        <option value="9/26 17:40">9/26 17:40</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div id="admin-booking-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                <!-- Dynamic render -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset All Bookings Confirmation Modal -->
+    <div id="reset-confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('reset-confirm-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-base font-bold text-macaron-textDark mb-1">重置所有預約資料</h3>
+            <p class="text-xs text-rose-500 font-bold mb-4">⚠️ 此動作將完全清空所有顧客預約！</p>
+            
+            <form onsubmit="handleResetAllBookings(event)" class="space-y-3">
+                <input type="password" id="reset-pwd-input" required placeholder="請再次輸入管理員密碼" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 focus:ring-rose-300">
+                <button type="submit" class="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition-colors shadow">
+                    確認完全清空
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Discrete Staff Admin Link Footer -->
+    <footer class="mt-12 text-center text-xs text-gray-400 py-4 border-t border-gray-200/40">
+        <p>© 2026 時代峰峻周邊快閃市集預約系統</p>
+        <button onclick="openAdminAuthModal()" class="mt-2 text-gray-400 hover:text-gray-600 underline text-[11px] transition-colors">
+            <i class="fa-solid fa-lock text-[10px]"></i> 工作人員核銷後台 (加密專用)
+        </button>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-2.5 rounded-full text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all z-50 flex items-center gap-2">
+        <i id="toast-icon" class="fa-solid fa-circle-info"></i>
+        <span id="toast-msg">提示訊息</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 🔧 已整合您相片中的 Firebase 專屬設定：
+        // =========================================================================
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyAIfw3aSHZrFGe7eRCHgp-vfQ_HI4mo9yU",
+            authDomain: "tf-popup-store.firebaseapp.com",
+            projectId: "tf-popup-store",
+            storageBucket: "tf-popup-store.firebasestorage.app",
+            messagingSenderId: "836820682703",
+            appId: "1:836820682703:web:78b0a9ee88fa8db9a8f4ba"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : defaultFirebaseConfig;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tf-popup-store';
+
+        let app, db, auth;
+        let isCloudAvailable = false;
+
+        try {
+            if (firebaseConfig && firebaseConfig.apiKey) {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                isCloudAvailable = true;
+                console.log("Firebase 雲端資料庫連接成功！");
+            }
+        } catch(e) {
+            console.warn("雲端資料庫連線中，目前運作於單機模式：", e);
+        }
+
+        // =========================================================================
+        // Global Constants & System Logic
+        // =========================================================================
+        const TIME_SLOTS = [
+            '11:00', '11:40', '12:00', '12:40', 
+            '13:00', '13:40', '14:00', '14:40', 
+            '15:00', '15:40', '16:00', '16:40', 
+            '17:00', '17:40'
+        ];
+
+        window.getMaxCapacity = function(timeSlot) {
+            return timeSlot === '11:00' ? 15 : 10;
+        };
+
+        window.TIME_SLOTS = TIME_SLOTS;
+        window.currentDate = '9/25';
+        window.selectedSlot = null;
+        window.bookings = [];
+
+        // Local Storage Sync
+        window.initData = function() {
+            const stored = localStorage.getItem('tf_popup_bookings');
+            if (stored) {
+                try { window.bookings = JSON.parse(stored); } catch(e) { window.bookings = []; }
+            } else {
+                window.bookings = [];
+            }
+        };
+
+        window.saveData = function() {
+            localStorage.setItem('tf_popup_bookings', JSON.stringify(window.bookings));
+        };
+
+        window.initData();
+
+        // Cloud listener setup
+        if (isCloudAvailable) {
+            const publicCollection = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
+            onSnapshot(publicCollection, (snapshot) => {
+                const cloudBookings = [];
+                snapshot.forEach(doc => {
+                    cloudBookings.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (cloudBookings.length > 0) {
+                    window.bookings = cloudBookings;
+                    window.saveData();
+                } else if (window.bookings.length > 0) {
+                    window.bookings.forEach(b => window.syncBookingToCloud(b));
+                }
+
+                window.renderSlots();
+                if (!document.getElementById('admin-panel-modal').classList.contains('hidden')) {
+                    window.renderAdminList();
+                }
+            }, (error) => {
+                console.error("Firestore 監聽異常（請確認 Firebase Firestore 已開啟且規則設定為 true）：", error);
+            });
+        }
+
+        window.syncBookingToCloud = async function(bookingData) {
+            if (!isCloudAvailable) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingData.id);
+                await setDoc(docRef, bookingData);
+            } catch(e) { console.error("雲端寫入失敗：", e); }
+        };
+
+        window.deleteBookingFromCloud = async function(bookingId) {
+            if (!isCloudAvailable) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
+                await deleteDoc(docRef);
+            } catch(e) { console.error("雲端刪除失敗：", e); }
+        };
+
+        window.getBookedCount = function(date, time) {
+            return window.bookings
+                .filter(b => b.date === date && b.time === time)
+                .reduce((sum, b) => sum + parseInt(b.pax), 0);
+        };
+
+        window.renderSlots = function() {
+            const grid = document.getElementById('slots-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            TIME_SLOTS.forEach(time => {
+                const maxCap = window.getMaxCapacity(time);
+                const currentBooked = window.getBookedCount(window.currentDate, time);
+                const isFull = currentBooked >= maxCap;
+                const isSelected = window.selectedSlot === time;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.disabled = isFull;
+
+                let baseStyle = "slot-btn relative p-3.5 rounded-2xl flex flex-col items-center justify-between border text-center transition-all cursor-pointer shadow-sm";
+                
+                if (isFull) {
+                    btn.className = `${baseStyle} bg-macaron-disabled border-gray-300 text-gray-400 cursor-not-allowed opacity-80`;
+                } else if (isSelected) {
+                    btn.className = `${baseStyle} bg-pink-400 border-pink-500 text-white shadow-md ring-4 ring-pink-200 transform scale-105`;
+                } else {
+                    btn.className = `${baseStyle} bg-white hover:bg-pink-50/60 border-pink-100 text-macaron-textDark hover:border-pink-300`;
+                }
+
+                btn.onclick = () => window.selectSlot(time);
+
+                btn.innerHTML = `
+                    <div class="text-xs font-bold mb-1 opacity-70">${window.currentDate}</div>
+                    <div class="text-base font-black tracking-tight mb-2">${time}</div>
+                    <div class="w-full pt-1.5 border-t border-black/5 text-[11px] font-medium flex items-center justify-center gap-1">
+                        ${isFull ? '<span class="text-red-400 font-bold">已額滿 FULL</span>' : '<i class="fa-regular fa-user text-[10px]"></i>'}
+                        <span class="${isFull ? 'text-gray-400 font-bold' : (isSelected ? 'text-white' : 'text-pink-600 font-bold')}">
+                            (${currentBooked}/${maxCap})
+                        </span>
+                    </div>
+                `;
+
+                grid.appendChild(btn);
+            });
+        };
+
+        window.switchDate = function(date) {
+            window.currentDate = date;
+            window.selectedSlot = null;
+
+            const btn925 = document.getElementById('date-btn-925');
+            const btn926 = document.getElementById('date-btn-926');
+
+            if (date === '9/25') {
+                btn925.className = "py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 shadow-sm bg-white text-pink-500";
+                btn926.className = "py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700";
+            } else {
+                btn926.className = "py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 shadow-sm bg-white text-pink-500";
+                btn925.className = "py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700";
+            }
+
+            document.getElementById('booking-form-container').classList.add('hidden');
+            window.renderSlots();
+        };
+
+        window.selectSlot = function(time) {
+            window.selectedSlot = time;
+            window.renderSlots();
+
+            const formContainer = document.getElementById('booking-form-container');
+            const slotDisplay = document.getElementById('selected-slot-display');
+            const quotaDisplay = document.getElementById('remaining-quota-display');
+            const paxSelect = document.getElementById('user-pax');
+
+            const maxCap = window.getMaxCapacity(time);
+            const currentBooked = window.getBookedCount(window.currentDate, time);
+            const remaining = maxCap - currentBooked;
+
+            slotDisplay.innerText = `${window.currentDate}  ${time}`;
+            quotaDisplay.innerText = `${remaining} 人`;
+
+            paxSelect.innerHTML = '';
+            const maxAllowed = Math.min(remaining, 4);
+            for (let i = 1; i <= maxAllowed; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = `${i} 人`;
+                paxSelect.appendChild(opt);
+            }
+
+            formContainer.classList.remove('hidden');
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+
+        // Form Submit
+        window.handleBookingSubmit = async function(e) {
+            e.preventDefault();
+
+            if (!window.selectedSlot) {
+                window.showToast('請先選擇預約時段！', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('submit-booking-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 預約處理中...`;
+
+            const name = document.getElementById('user-name').value.trim();
+            const phone = document.getElementById('user-phone').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const pax = parseInt(document.getElementById('user-pax').value);
+            const note = document.getElementById('user-note').value.trim();
+
+            const currentBooked = window.getBookedCount(window.currentDate, window.selectedSlot);
+            const maxCap = window.getMaxCapacity(window.selectedSlot);
+
+            if (currentBooked + pax > maxCap) {
+                window.showToast('該時段剩餘名額不足！', 'error');
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 確認並送出預約`;
+                return;
+            }
+
+            const sameSlotBookings = window.bookings.filter(b => b.date === window.currentDate && b.time === window.selectedSlot);
+            const orderNum = sameSlotBookings.length + 1;
+            const seqString = String(orderNum).padStart(3, '0');
+            
+            const dateCode = window.currentDate.replace('/', '');
+            const timeCode = window.selectedSlot.replace(':', '');
+            const bookingId = `TF${dateCode}-${timeCode}-${seqString}`;
+
+            const newBooking = {
+                id: bookingId,
+                date: window.currentDate,
+                time: window.selectedSlot,
+                name: name,
+                phone: phone,
+                email: email,
+                pax: pax,
+                note: note,
+                checkedIn: false,
+                createdAt: new Date().toISOString()
+            };
+
+            window.bookings.push(newBooking);
+            window.saveData();
+            await window.syncBookingToCloud(newBooking);
+
+            // Display Digital Ticket
+            document.getElementById('ticket-id').innerText = bookingId;
+            document.getElementById('ticket-date').innerText = `${window.currentDate}`;
+            document.getElementById('ticket-time').innerText = window.selectedSlot;
+            document.getElementById('ticket-name').innerText = name;
+            document.getElementById('ticket-pax').innerText = pax;
+
+            // Reset Form State
+            document.getElementById('booking-form').reset();
+            document.getElementById('booking-form-container').classList.add('hidden');
+            window.selectedSlot = null;
+            window.renderSlots();
+
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 確認並送出預約`;
+
+            window.openModal('ticket-modal');
+            window.showToast('預約成功！請截圖保存憑證', 'success');
+        };
+
+        // User Search
+        window.openLookupModal = function() {
+            const phoneInput = document.getElementById('search-phone');
+            if (phoneInput) phoneInput.value = '';
+            const container = document.getElementById('search-results');
+            if (container) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-gray-400">輸入號碼後點擊搜尋</div>`;
+            }
+            window.openModal('lookup-modal');
+        };
+
+        window.searchBookings = function() {
+            const query = document.getElementById('search-phone').value.trim();
+            const container = document.getElementById('search-results');
+
+            if (!query) {
+                window.showToast('請輸入手機號碼或預約編號！', 'error');
+                return;
+            }
+
+            const results = window.bookings.filter(b => b.phone.includes(query) || b.id.toLowerCase().includes(query.toLowerCase()));
+
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-gray-400 text-xs">
+                        <i class="fa-solid fa-ghost text-2xl mb-2 text-gray-300 block"></i>
+                        查無此號碼的預約記錄
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = results.map(b => `
+                <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 relative flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-mono font-bold text-purple-600">${b.id}</div>
+                        <div class="text-sm font-black text-gray-800">${b.date} ${b.time}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">預約人：${b.name} (${b.pax}人)</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.viewTicket('${b.id}')" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-xs font-bold transition-colors">
+                            查看憑證
+                        </button>
+                        <button onclick="window.cancelBooking('${b.id}')" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl text-xs font-bold transition-colors">
+                            取消預約
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.viewTicket = function(bookingId) {
+            const b = window.bookings.find(item => item.id === bookingId);
+            if (!b) return;
+
+            document.getElementById('ticket-id').innerText = b.id;
+            document.getElementById('ticket-date').innerText = b.date;
+            document.getElementById('ticket-time').innerText = b.time;
+            document.getElementById('ticket-name').innerText = b.name;
+            document.getElementById('ticket-pax').innerText = b.pax;
+
+            window.closeModal('lookup-modal');
+            window.openModal('ticket-modal');
+        };
+
+        window.cancelBooking = async function(bookingId) {
+            const index = window.bookings.findIndex(b => b.id === bookingId);
+            if (index !== -1) {
+                window.bookings.splice(index, 1);
+                window.saveData();
+                await window.deleteBookingFromCloud(bookingId);
+                window.renderSlots();
+                window.searchBookings();
+                window.showToast('已取消預約，名額已即時釋放！', 'success');
+            }
+        };
+
+        // Staff Admin Password Verification
+        window.openAdminAuthModal = function() {
+            document.getElementById('admin-pwd-input').value = '';
+            window.openModal('admin-auth-modal');
+        };
+
+        window.verifyAdminPassword = function(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('admin-pwd-input').value;
+            if (pwd === 'weng2') {
+                window.closeModal('admin-auth-modal');
+                window.renderAdminList();
+                window.openModal('admin-panel-modal');
+                window.showToast('身分驗證成功！歡迎進入後台', 'success');
+            } else {
+                window.showToast('解鎖密碼錯誤！', 'error');
+            }
+        };
+
+        window.renderAdminList = function() {
+            const list = document.getElementById('admin-booking-list');
+            if (!list) return;
+
+            const searchKey = document.getElementById('admin-search-input')?.value.toLowerCase().trim() || '';
+            const slotFilter = document.getElementById('admin-filter-slot')?.value || 'ALL';
+
+            let filtered = [...window.bookings];
+
+            if (slotFilter !== 'ALL') {
+                filtered = filtered.filter(b => `${b.date} ${b.time}` === slotFilter);
+            }
+
+            if (searchKey) {
+                filtered = filtered.filter(b => 
+                    b.id.toLowerCase().includes(searchKey) ||
+                    b.name.toLowerCase().includes(searchKey) ||
+                    b.phone.includes(searchKey)
+                );
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">目前沒有符合條件的預約紀錄</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(b => `
+                <div class="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between gap-2">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-700">${b.id}</span>
+                            <span class="text-xs font-bold ${b.checkedIn ? 'text-emerald-600 bg-emerald-100' : 'text-amber-600 bg-amber-100'} px-2 py-0.5 rounded">
+                                ${b.checkedIn ? '已核銷' : '未核銷'}
+                            </span>
+                        </div>
+                        <div class="text-xs font-bold text-gray-800">${b.date} ${b.time} | ${b.name} (${b.pax}人)</div>
+                        <div class="text-[11px] text-gray-400">電話：${b.phone} ${b.note ? '| 備註: ' + b.note : ''}</div>
+                    </div>
+                    <button onclick="window.toggleCheckIn('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${b.checkedIn ? 'bg-gray-200 text-gray-600' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}">
+                        ${b.checkedIn ? '取消核銷' : '標註核銷'}
+                    </button>
+                </div>
+            `).join('');
+        };
+
+        window.toggleCheckIn = async function(bookingId) {
+            const item = window.bookings.find(b => b.id === bookingId);
+            if (item) {
+                item.checkedIn = !item.checkedIn;
+                window.saveData();
+                await window.syncBookingToCloud(item);
+                window.renderAdminList();
+                window.showToast(item.checkedIn ? '已核銷入場！' : '已取消核銷狀態', 'info');
+            }
+        };
+
+        window.openResetConfirmModal = function() {
+            document.getElementById('reset-pwd-input').value = '';
+            window.openModal('reset-confirm-modal');
+        };
+
+        window.handleResetAllBookings = async function(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('reset-pwd-input').value;
+            if (pwd !== 'weng2') {
+                window.showToast('重置失敗：密碼錯誤！', 'error');
+                return;
+            }
+
+            const currentBookings = [...window.bookings];
+            window.bookings = [];
+            window.saveData();
+
+            for (const b of currentBookings) {
+                if (b.id) {
+                    await window.deleteBookingFromCloud(b.id);
+                }
+            }
+
+            window.renderSlots();
+            window.renderAdminList();
+            window.closeModal('reset-confirm-modal');
+            window.showToast('已成功重置所有預約紀錄！', 'success');
+        };
+
+        window.exportToCSV = function() {
+            if (window.bookings.length === 0) {
+                window.showToast('目前尚無預約資料可供匯出！', 'error');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "預約編號,日期,時段,姓名,電話,人數,電子信箱,核銷狀態,備註\n";
+
+            window.bookings.forEach(b => {
+                csvContent += `"${b.id}","${b.date}","${b.time}","${b.name}","${b.phone}","${b.pax}","${b.email || ''}","${b.checkedIn ? '已核銷' : '未核銷'}","${b.note || ''}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `時代峰峻快閃市集預約名冊_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // Ticket Screenshot Download
+        window.downloadTicketImage = function() {
+            const card = document.getElementById('ticket-card-content');
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(card).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `時代峰峻快閃市集入場憑證_${document.getElementById('ticket-id').innerText}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            } else {
+                window.showToast('請使用手機螢幕截圖保存憑證卡片', 'info');
+            }
+        };
+
+        // Helpers
+        window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
+
+        window.showToast = function(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            if (type === 'success') toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            else if (type === 'error') toastIcon.className = "fa-solid fa-circle-xmark text-rose-400";
+            else toastIcon.className = "fa-solid fa-circle-info text-blue-400";
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        };
+
+        window.initData();
+        window.renderSlots();
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                window.renderSlots();
+            });
+        } else {
+            window.renderSlots();
+        }
+    </script>
+</body>
+</html>
