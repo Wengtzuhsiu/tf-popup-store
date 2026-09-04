@@ -100,9 +100,9 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div class="text-xs md:text-sm">
-                    <div class="font-bold text-macaron-textDark">預約須知</div>
-                    <div class="text-gray-500 mt-0.5">進場低消一杯飲料，離場後需重新排隊進場~</div>
-                    <div class="text-gray-500 mt-0.5">請準時到場等候，名額保留10分鐘，逾期須與下一批預約客人一同進入</div>
+                    <div class="font-bold text-macaron-textDark">進場須配合低消一杯飲料</div>
+                    <div class="text-gray-500 mt-0.5">請準時到場等候，逾期須與下一批預約客人一同進入</div>
+                    <div class="text-gray-500 mt-0.3">離場後可重新排隊入場~</div>
                 </div>
             </div>
 
@@ -113,7 +113,7 @@
                         <i class="fa-solid fa-ticket-simple"></i>
                     </div>
                     <div class="text-left">
-                        <div class="font-bold text-sm text-macaron-textDark">查詢 / 取消預約</div>
+                        <div class="font-bold text-sm text-macaron-textDark">查詢入場憑證 / 取消預約</div>
                         <div class="text-[11px] text-gray-400">輸入手機查詢記錄</div>
                     </div>
                 </div>
@@ -225,7 +225,7 @@
             </div>
 
             <h3 class="text-lg font-black text-macaron-textDark mb-0.5">預約成功！</h3>
-            <p class="text-xs text-gray-400 mb-3">請截圖保存下方憑證，現場核銷入場</p>
+            <p class="text-sm text-gray-400 mb-3">請保存此入場憑證，並回傳截圖給主辦IG</p>
 
             <!-- Digital Ticket Card -->
             <div id="ticket-card-content" class="bg-macaron-yellow/80 rounded-2xl p-5 border-2 border-dashed border-amber-300 text-left relative mb-4">
@@ -249,9 +249,9 @@
 
             <div class="space-y-2">
                 
-                <button onclick="closeModal('ticket-modal')" class="w-full py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-colors">
-                    關閉視窗
-                </button>
+                <button onclick="window.open('https://www.instagram.com/yuuuu_fish_tnt?igsi=dGU5N3doeXJ1ejUx', '_blank'); window.closeModal('ticket-modal');" class="w-full py-2.5 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-600 font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-instagram text-"></i> 主辦 IG 傳送門
+                </button>                
             </div>
         </div>
     </div>
@@ -402,6 +402,7 @@
 
     <!-- Bottom Discrete Staff Admin Link Footer -->
     <footer class="mt-12 text-center text-xs text-gray-400 py-4 border-t border-gray-200/40">
+        <p>主辦單位有權依現場情況更改活動安排</p>
         <p>任何問題請私訊 IG:yuuuu_fish_tnt</p>
         <button onclick="openAdminAuthModal()" class="mt-2 text-gray-400 hover:text-gray-600 underline text-[11px] transition-colors">
             <i class="fa-solid fa-lock text-[10px]"></i> 工作人員核銷後台 (加密專用)
