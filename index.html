@@ -471,6 +471,20 @@
             '17:00', '17:40'
         ];
 
+        // 🔒 手動鎖定額滿時段清單 (格式為：'日期 時段')
+        // 只要填入裡面的時段，前台就會直接顯示已額滿且無法預約
+        const CLOSED_SLOTS = [
+            '9/25 11:00', // 填寫範例：鎖定 9/25 的 11:00 時段
+            '9/25 11:40', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/25 12:00', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/25 13:40', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/25 14:00', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/26 11:40', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/26 12:00', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/26 12:40', // 填寫範例：鎖定 9/25 的 14:00 時段
+            '9/26 13:00' // 填寫範例：鎖定 9/25 的 14:00 時段
+        ];
+
         window.getMaxCapacity = function(timeSlot) {
             return timeSlot === '11:00' ? 15 : 10;
         };
@@ -551,7 +565,13 @@
             TIME_SLOTS.forEach(time => {
                 const maxCap = window.getMaxCapacity(time);
                 const currentBooked = window.getBookedCount(window.currentDate, time);
-                const isFull = currentBooked >= maxCap;
+                
+                // 檢查此時段是否在手動封鎖清單中
+                const slotKey = `${window.currentDate} ${time}`;
+                const isManuallyClosed = CLOSED_SLOTS.includes(slotKey);
+                
+                // 只要人數爆滿 OR 在手動封鎖清單中，就判定為額滿
+                const isFull = isManuallyClosed || (currentBooked >= maxCap);
                 const isSelected = window.selectedSlot === time;
 
                 const btn = document.createElement('button');
